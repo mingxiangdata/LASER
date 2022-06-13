@@ -25,8 +25,8 @@ import numpy as np
 assert os.environ.get('LASER'), 'Please set the enviornment variable LASER'
 LASER = os.environ['LASER']
 
-sys.path.append(LASER + '/source')
-sys.path.append(LASER + '/source/tools')
+sys.path.append(f'{LASER}/source')
+sys.path.append(f'{LASER}/source/tools')
 from embed import SentenceEncoder, EncodeLoad, EncodeFile
 from text_processing import Token, BPEfastApply
 
@@ -73,41 +73,66 @@ languages = ('en', 'ar', 'bg', 'de', 'el', 'es', 'fr', 'hi', 'ru', 'sw', 'th', '
 print('\nProcessing train:')
 for lang in languages_train:
     for part in ('prem', 'hyp'):
-        cfname = os.path.join(args.data_dir, 'xnli.train.' + part + '.')
-        Token(cfname + lang,
-              cfname + 'tok.' + lang,
-              lang=lang,
-              romanize=True if lang=='el' else False,
-              lower_case=True, gzip=True,
-              verbose=args.verbose, over_write=False)
-        BPEfastApply(cfname + 'tok.' + lang,
-                     cfname + 'bpe.' + lang,
-                     args.bpe_codes,
-                     verbose=args.verbose, over_write=False)
-        EncodeFile(enc,
-                   cfname + 'bpe.' + lang,
-                   cfname + 'enc.' + lang,
-                   verbose=args.verbose, over_write=False,
-                   buffer_size=args.buffer_size) 
+        cfname = os.path.join(args.data_dir, f'xnli.train.{part}.')
+        Token(
+            cfname + lang,
+            f'{cfname}tok.{lang}',
+            lang=lang,
+            romanize=lang == 'el',
+            lower_case=True,
+            gzip=True,
+            verbose=args.verbose,
+            over_write=False,
+        )
+
+        BPEfastApply(
+            f'{cfname}tok.{lang}',
+            f'{cfname}bpe.{lang}',
+            args.bpe_codes,
+            verbose=args.verbose,
+            over_write=False,
+        )
+
+        EncodeFile(
+            enc,
+            f'{cfname}bpe.{lang}',
+            f'{cfname}enc.{lang}',
+            verbose=args.verbose,
+            over_write=False,
+            buffer_size=args.buffer_size,
+        )
+         
 
 for corpus in ('xnli.dev', 'xnli.test'):
     print('\nProcessing {}:'.format(corpus))
     for part in ('prem', 'hyp'):
-        cfname = os.path.join(args.data_dir, corpus + '.' + part + '.')
+        cfname = os.path.join(args.data_dir, f'{corpus}.{part}.')
         for lang in languages:
-            Token(cfname + lang,
-                  cfname + 'tok.' + lang,
-                  lang=lang,
-                  romanize=True if lang=='el' else False,
-                  lower_case=True, gzip=False,
-                  verbose=args.verbose, over_write=False)
-            BPEfastApply(cfname + 'tok.' + lang,
-                         cfname + 'bpe.' + lang,
-                         args.bpe_codes,
-                         verbose=args.verbose, over_write=False)
-            EncodeFile(enc,
-                       cfname + 'bpe.' + lang,
-                       cfname + 'enc.' + lang,
-                       verbose=args.verbose, over_write=False,
-                       buffer_size=args.buffer_size) 
+            Token(
+                cfname + lang,
+                f'{cfname}tok.{lang}',
+                lang=lang,
+                romanize=lang == 'el',
+                lower_case=True,
+                gzip=False,
+                verbose=args.verbose,
+                over_write=False,
+            )
+
+            BPEfastApply(
+                f'{cfname}tok.{lang}',
+                f'{cfname}bpe.{lang}',
+                args.bpe_codes,
+                verbose=args.verbose,
+                over_write=False,
+            )
+
+            EncodeFile(
+                enc,
+                f'{cfname}bpe.{lang}',
+                f'{cfname}enc.{lang}',
+                verbose=args.verbose,
+                over_write=False,
+                buffer_size=args.buffer_size,
+            ) 
 

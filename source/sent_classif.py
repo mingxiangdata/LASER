@@ -39,8 +39,7 @@ def LoadData(bdir, dfn, lfn, dim=1024, bsize=32, shuffle=False, quiet=False):
               .format(lbl.shape[0], lbl.min(), lbl.max(), lfn))
 
     D = data_utils.TensorDataset(torch.from_numpy(x), torch.from_numpy(lbl))
-    loader = data_utils.DataLoader(D, batch_size=bsize, shuffle=shuffle)
-    return loader
+    return data_utils.DataLoader(D, batch_size=bsize, shuffle=shuffle)
 
 
 ################################################
@@ -181,8 +180,8 @@ parser.add_argument(
     help="GPU id (-1 for CPU)")
 args = parser.parse_args()
 
-print(' - base directory: {}'.format(args.base_dir))
-args.base_dir = args.base_dir + "/"
+print(f' - base directory: {args.base_dir}')
+args.base_dir = f"{args.base_dir}/"
 
 train_loader = LoadData(args.base_dir, args.train, args.train_labels,
                         dim=args.dim, bsize=args.bsize, shuffle=True)
@@ -264,10 +263,16 @@ if 'net_best' in globals():
 
     # test on (several) languages
     for l in args.lang:
-        test_loader = LoadData(args.base_dir, args.test + '.' + l,
-                               args.test_labels + '.' + l,
-                               dim=args.dim, bsize=args.bsize,
-                               shuffle=False, quiet=True)
+        test_loader = LoadData(
+            args.base_dir,
+            f'{args.test}.{l}',
+            f'{args.test_labels}.{l}',
+            dim=args.dim,
+            bsize=args.bsize,
+            shuffle=False,
+            quiet=True,
+        )
+
         print('Ep best | Eval Test lang {:s}'.format(l), end='')
         net_best.TestCorpus(test_loader, 'Test')
         print('')

@@ -47,14 +47,17 @@ def vectorize():
             f.write(content)
         if lang != '--':
             tok_fname = tmpdir / "tok"
-            Token(str(ifname),
-                  str(tok_fname),
-                  lang=lang,
-                  romanize=True if lang == 'el' else False,
-                  lower_case=True,
-                  gzip=False,
-                  verbose=True,
-                  over_write=False)
+            Token(
+                str(ifname),
+                str(tok_fname),
+                lang=lang,
+                romanize=lang == 'el',
+                lower_case=True,
+                gzip=False,
+                verbose=True,
+                over_write=False,
+            )
+
             ifname = tok_fname
         BPEfastApply(str(ifname),
                      str(bpe_fname),

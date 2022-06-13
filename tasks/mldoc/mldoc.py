@@ -23,8 +23,8 @@ import argparse
 assert os.environ.get('LASER'), 'Please set the enviornment variable LASER'
 LASER = os.environ['LASER']
 
-sys.path.append(LASER + '/source')
-sys.path.append(LASER + '/source/tools')
+sys.path.append(f'{LASER}/source')
+sys.path.append(f'{LASER}/source/tools')
 from embed import SentenceEncoder, EncodeLoad, EncodeFile
 from text_processing import Token, BPEfastApply, SplitLines, JoinEmbed
 
@@ -77,25 +77,43 @@ print('\nProcessing:')
 for part in ('train1000', 'dev', 'test'):
     # for lang in "en" if part == 'train1000' else args.lang:
     for lang in args.lang:
-        cfname = os.path.join(args.data_dir, 'mldoc.' + part)
-        Token(cfname + '.txt.' + lang,
-              cfname + '.tok.' + lang,
-              lang=lang,
-              romanize=(True if lang == 'el' else False),
-              lower_case=True, gzip=False,
-              verbose=args.verbose, over_write=False)
-        SplitLines(cfname + '.tok.' + lang,
-                   cfname + '.split.' + lang,
-                   cfname + '.sid.' + lang)
-        BPEfastApply(cfname + '.split.' + lang,
-                     cfname + '.split.bpe.' + lang,
-                     args.bpe_codes,
-                     verbose=args.verbose, over_write=False)
-        EncodeFile(enc,
-                   cfname + '.split.bpe.' + lang,
-                   cfname + '.split.enc.' + lang,
-                   verbose=args.verbose, over_write=False,
-                   buffer_size=args.buffer_size)
-        JoinEmbed(cfname + '.split.enc.' + lang,
-                  cfname + '.sid.' + lang,
-                  cfname + '.enc.' + lang)
+        cfname = os.path.join(args.data_dir, f'mldoc.{part}')
+        Token(
+            f'{cfname}.txt.{lang}',
+            f'{cfname}.tok.{lang}',
+            lang=lang,
+            romanize=lang == 'el',
+            lower_case=True,
+            gzip=False,
+            verbose=args.verbose,
+            over_write=False,
+        )
+
+        SplitLines(
+            f'{cfname}.tok.{lang}',
+            f'{cfname}.split.{lang}',
+            f'{cfname}.sid.{lang}',
+        )
+
+        BPEfastApply(
+            f'{cfname}.split.{lang}',
+            f'{cfname}.split.bpe.{lang}',
+            args.bpe_codes,
+            verbose=args.verbose,
+            over_write=False,
+        )
+
+        EncodeFile(
+            enc,
+            f'{cfname}.split.bpe.{lang}',
+            f'{cfname}.split.enc.{lang}',
+            verbose=args.verbose,
+            over_write=False,
+            buffer_size=args.buffer_size,
+        )
+
+        JoinEmbed(
+            f'{cfname}.split.enc.{lang}',
+            f'{cfname}.sid.{lang}',
+            f'{cfname}.enc.{lang}',
+        )
