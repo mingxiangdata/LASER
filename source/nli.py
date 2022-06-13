@@ -63,8 +63,7 @@ def LoadDataNLI(fn1, fn2, fn_lbl,
     nli = np.concatenate((x, y, np.absolute(x - y), np.multiply(x, y)), axis=1)
 
     D = data_utils.TensorDataset(torch.from_numpy(nli), torch.from_numpy(lbl))
-    loader = data_utils.DataLoader(D, batch_size=bsize, shuffle=shuffle)
-    return loader
+    return data_utils.DataLoader(D, batch_size=bsize, shuffle=shuffle)
 
 
 ################################################

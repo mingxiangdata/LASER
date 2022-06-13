@@ -108,8 +108,7 @@ def split_geez(line: str) -> tp.Iterable[str]:
         .replace("! •", "!")
         .replace(". •", ".")
     )
-    for sent in re.findall(r"[^።•!?\!\?\.]+[።•!?।৷\?\!\.]?", line, flags=re.U):
-        yield sent
+    yield from re.findall(r"[^።•!?\!\?\.]+[።•!?।৷\?\!\.]?", line, flags=re.U)
 
 
 # ----------------------------------------------
@@ -118,8 +117,7 @@ LANGS_OLCHIKI = {"san": "san"}
 
 def split_olchiki(line: str) -> tp.Iterable[str]:
     """Split Santali text into sentences."""
-    for sent in re.findall(r"[^᱾|᱿!?\!\?]+[᱾|᱿!?\?\!]?", line, flags=re.U):
-        yield sent
+    yield from re.findall(r"[^᱾|᱿!?\!\?]+[᱾|᱿!?\?\!]?", line, flags=re.U)
 
 
 # test sentence: ᱱᱤᱭᱟᱹ ᱣᱤᱠᱤᱯᱤᱰᱤᱭᱟ ᱫᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱛᱮ ᱚᱞ ᱟᱠᱟᱱᱟ᱾ ᱚᱨᱦᱚᱸ ᱮᱴᱟᱜ ᱯᱟᱹᱨᱥᱤᱛᱮ ᱦᱚᱸ ᱟᱭᱢᱟ ᱣᱤᱠᱤᱯᱤᱰᱤᱭᱟ ᱢᱮᱱᱟᱜᱼᱟ ᱾ ᱱᱚᱸᱰᱮ ᱠᱤᱪᱷᱩ ᱛᱟᱹᱞᱠᱟᱹ ᱮᱢ ᱦᱩᱭᱱᱟ ᱾
@@ -199,8 +197,7 @@ def get_split_algo(lang: str, split_algo: str) -> tp.Callable[[str], tp.Iterable
         def split_indic(line: str) -> tp.Iterable[str]:
             """Split Indian text into sentences using Indic NLP tool."""
             line = indic_normalizer.normalize(line)
-            for sent in indic_sent_tok.sentence_split(line, lang=lang):
-                yield sent
+            yield from indic_sent_tok.sentence_split(line, lang=lang)
 
         return split_indic
 

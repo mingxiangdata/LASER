@@ -75,13 +75,9 @@ def get_typed_parser(cls: Type) -> Callable:
 
 
 def open_read(file: Path) -> Iterable[str]:
-    if file.suffix == ".gz":
-        reader = gzip.open(file, "rt")
-    else:
-        reader = open(file, "rt")
+    reader = gzip.open(file, "rt") if file.suffix == ".gz" else open(file, "rt")
     with reader as f:
-        for line in f:
-            yield line
+        yield from f
 
 
 def dl(outdir: Path = Path("data"), version: str = KNOWN_VERSIONS[0], parallelism: int = 8):
@@ -92,7 +88,7 @@ def dl(outdir: Path = Path("data"), version: str = KNOWN_VERSIONS[0], parallelis
     """
     assert version in KNOWN_VERSIONS, f"Unknown version {version}, chose from {KNOWN_VERSIONS}"
     metadata_dir = f"https://dl.fbaipublicfiles.com/laser/CCMatrix/{version}"
-    file_list = [l.strip() for l in open_remote_file(metadata_dir + "/list.txt")]
+    file_list = [l.strip() for l in open_remote_file(f"{metadata_dir}/list.txt")]
     outdir.mkdir(exist_ok=True)
     outdir = outdir / version / "raw"
     outdir.mkdir(exist_ok=True, parents=True)
@@ -170,7 +166,7 @@ def dl_file(metadata_dir: str, outdir: Path, file: str):
 def _tmp(file: Path) -> Path:
     tmp_dir = file.parent
     prefix = file.name.split(".", 1)[0] + "."
-    suffix = ".tmp." + file.name[len(prefix) :]
+    suffix = f".tmp.{file.name[len(prefix) :]}"
     _, tmp_path = tempfile.mkstemp(dir=tmp_dir, prefix=prefix, suffix=suffix)
     return Path(tmp_path)
 
@@ -227,18 +223,18 @@ def sort_files(outdir: Path, lang_pair_dir: Path, lang: str) -> Path:
 
     files: List[Path] = []
     for f in lang_pair_dir.iterdir():
-        if not f.suffix == ".gz":
+        if f.suffix != ".gz":
             continue
         if f.name.split("_")[0] != lang:
             continue
         files.append(f)
 
     print(f"Found {len(files)} files for lang '{lang}' in {lang_pair_dir}: {files}")
-    assert len(files) > 0
+    assert files
 
     (outdir / lang_pair_dir.name).mkdir(exist_ok=True, parents=True)
     tmp_out = _tmp(out)
-    
+
     unzipped_files = []
     for f in files:
         subprocess.check_call(["gunzip", "-k", str(f)])

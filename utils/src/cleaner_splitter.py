@@ -38,7 +38,7 @@ class SentenceSplitClean:
 
 
 def remove_on_unicode_category(x: str) -> str:
-    return "".join(filter(lambda ch: not unicodedata.category(ch) in {"So"}, x))
+    return "".join(filter(lambda ch: unicodedata.category(ch) not in {"So"}, x))
 
 
 def get_replacer_unicode_category(
@@ -51,13 +51,14 @@ def get_replacer_unicode_category(
         def flt(ch):
             nonlocal total_counter
             nonlocal skip_counter
-            if max_num == 0 or total_counter < max_num:
-                if unicodedata.category(ch) in {"So"}:
-                    if skip_counter < skip_min:
-                        skip_counter += 1
-                        return ch
-                    total_counter += 1
-                    return replace_by
+            if (max_num == 0 or total_counter < max_num) and unicodedata.category(
+                ch
+            ) in {"So"}:
+                if skip_counter < skip_min:
+                    skip_counter += 1
+                    return ch
+                total_counter += 1
+                return replace_by
             return ch
 
         return "".join(map(flt, x))
@@ -69,13 +70,13 @@ def get_replacer_unicode_category(
 def get_sentence_candidate_modifiers() -> tp.List[tp.Callable]:
     return [
         lambda x: x,
-        lambda x: x + " ",
-        lambda x: " " + x,
-        lambda x: " " + x + " ",
-        lambda x: "  " + x,
+        lambda x: f"{x} ",
+        lambda x: f" {x}",
+        lambda x: f" {x} ",
+        lambda x: f"  {x}",
         lambda x: x.rstrip(),
         lambda x: x.lstrip(),
-        lambda x: " " + x.rstrip(),
+        lambda x: f" {x.rstrip()}",
         lambda x: x.strip(),
         lambda x: demojizer(x, ""),
         lambda x: demojizer(x, "").strip(),

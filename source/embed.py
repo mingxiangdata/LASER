@@ -142,8 +142,7 @@ class SentenceEncoder:
 
         with torch.no_grad():
             sentemb = self.encoder(tokens, lengths)["sentemb"]
-        embeddings = sentemb.detach().cpu().numpy()
-        return embeddings
+        return sentemb.detach().cpu().numpy()
 
     def _tokenize(self, line):
         tokens = SPACE_NORMALIZER.sub(" ", line).strip().split()
@@ -422,24 +421,21 @@ def EncodeFile(
     if not os.path.isfile(out_fname):
         if verbose:
             print(
-                " - Encoder: {} to {}".format(
-                    os.path.basename(inp_fname) if len(inp_fname) > 0 else "stdin",
-                    os.path.basename(out_fname),
-                )
+                f' - Encoder: {os.path.basename(inp_fname) if len(inp_fname) > 0 else "stdin"} to {os.path.basename(out_fname)}'
             )
+
         fin = (
             open(inp_fname, "r", encoding=inp_encoding, errors="surrogateescape")
             if len(inp_fname) > 0
             else sys.stdin
         )
-        fout = open(out_fname, mode="wb")
-        EncodeFilep(
-            encoder, fin, fout, buffer_size=buffer_size, fp16=fp16, verbose=verbose
-        )
-        fin.close()
-        fout.close()
+        with open(out_fname, mode="wb") as fout:
+            EncodeFilep(
+                encoder, fin, fout, buffer_size=buffer_size, fp16=fp16, verbose=verbose
+            )
+            fin.close()
     elif not over_write and verbose:
-        print(" - Encoder: {} exists already".format(os.path.basename(out_fname)))
+        print(f" - Encoder: {os.path.basename(out_fname)} exists already")
 
 
 # Load existing embeddings
@@ -505,12 +501,13 @@ def embed_sentences(
                 ifname,
                 tok_fname,
                 lang=token_lang,
-                romanize=True if token_lang == "el" else False,
+                romanize=token_lang == "el",
                 lower_case=True,
                 gzip=False,
                 verbose=verbose,
                 over_write=False,
             )
+
             ifname = tok_fname
 
         if bpe_codes:

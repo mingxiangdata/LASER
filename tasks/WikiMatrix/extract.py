@@ -49,12 +49,12 @@ args = parser.parse_args()
 print('Tool to extract bitext from the WikiMatrix')
 
 nl = 0
-nw_src = 0   
-nw_trg = 0   
-print('Processing {}'.format(args.tsv))
+nw_src = 0
+nw_trg = 0
+print(f'Processing {args.tsv}')
 with gzip.open(args.tsv, 'rt', encoding=args.encoding) as tsv:
-    with open(args.bitext + '.' + args.src_lang, 'wt', encoding=args.encoding) as fsrc:
-        with open(args.bitext + '.' + args.trg_lang, 'wt', encoding=args.encoding) as ftrg:
+    with open(f'{args.bitext}.{args.src_lang}', 'wt', encoding=args.encoding) as fsrc:
+        with open(f'{args.bitext}.{args.trg_lang}', 'wt', encoding=args.encoding) as ftrg:
             while nl < args.nb_sents:
                 line = tsv.readline()
                 if not line:

@@ -29,7 +29,7 @@ from collections import namedtuple
 assert os.environ.get('LASER'), 'Please set the enviornment variable LASER'
 LASER = os.environ['LASER']
 
-sys.path.append(LASER + '/source/lib')
+sys.path.append(f'{LASER}/source/lib')
 from indexing import IndexLoad, IndexTextOpen, IndexTextQuery, SplitOpen, SplitAccess
 from embed import SentenceEncoder, EncodeLoad, EncodeFile, EncodeTime
 from text_processing import Token, BPEfastApply
@@ -90,7 +90,7 @@ def MarginAbs(em, ofp, params, args, stats):
                 stats.nbp += 1
 
         # display source sentece if requested
-        if (args.include_source == 'matches' and len(prev) > 0):
+        if args.include_source == 'matches' and prev:
             ofp.write('{:d}\t{:6.1f}\t{}\n'
                       .format(stats.nbs, 0.0, sentences[n].replace('@@ ', '')))
 
@@ -243,12 +243,17 @@ with tempfile.TemporaryDirectory() as tmpdir:
     ifile = args.input
     if args.token_lang != '--':
         ifile = os.path.join(tmpdir, 'tok')
-        Token(args.input,
-              ifile,
-              lang=args.token_lang,
-              romanize=True if args.token_lang == 'el' else False,
-              lower_case=True, gzip=False,
-              verbose=args.verbose, over_write=False)
+        Token(
+            args.input,
+            ifile,
+            lang=args.token_lang,
+            romanize=args.token_lang == 'el',
+            lower_case=True,
+            gzip=False,
+            verbose=args.verbose,
+            over_write=False,
+        )
+
 
     if args.bpe_codes:
         bpe_file = os.path.join(tmpdir, 'bpe')
@@ -259,25 +264,24 @@ with tempfile.TemporaryDirectory() as tmpdir:
         ifile = bpe_file
 
     print(' - processing (batch size is {:d})'.format(args.buffer_size))
-    ifp = open(ifile, 'r', encoding=args.encoding, errors='surrogateescape')
-    if args.output == '--':
-        ofp = sys.stdout
-    else:
-        ofp = open(args.output, 'w', encoding=args.encoding, errors='surrogateescape')
-    stats = namedtuple('stats', 'ns np')
-    stats.nbs = 0
-    stats.nbp = 0
-    t = time.time()
-    for sentences in buffered_read(ifp, args.buffer_size):
-        embed = params.enc.encode_sentences(sentences)
-        faiss.normalize_L2(embed)
-        # call function for selected margin method
-        margin_methods.get(args.margin)(embed, ofp, params, args, stats)
-        if stats.nbs % 1000 == 0:
-            print('\r - {:d} sentences {:d} paraphrases'
-                  .format(stats.nbs, stats.nbp), end='')
+    with open(ifile, 'r', encoding=args.encoding, errors='surrogateescape') as ifp:
+        if args.output == '--':
+            ofp = sys.stdout
+        else:
+            ofp = open(args.output, 'w', encoding=args.encoding, errors='surrogateescape')
+        stats = namedtuple('stats', 'ns np')
+        stats.nbs = 0
+        stats.nbp = 0
+        t = time.time()
+        for sentences in buffered_read(ifp, args.buffer_size):
+            embed = params.enc.encode_sentences(sentences)
+            faiss.normalize_L2(embed)
+            # call function for selected margin method
+            margin_methods.get(args.margin)(embed, ofp, params, args, stats)
+            if stats.nbs % 1000 == 0:
+                print('\r - {:d} sentences {:d} paraphrases'
+                      .format(stats.nbs, stats.nbp), end='')
 
-    ifp.close()
     if args.output != '--':
         ofp.close()
     print('\r - {:d} sentences {:d} paraphrases'

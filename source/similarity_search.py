@@ -24,8 +24,8 @@ import numpy as np
 assert os.environ.get('LASER'), 'Please set the enviornment variable LASER'
 LASER = os.environ['LASER']
 
-sys.path.append(LASER + '/source')
-sys.path.append(LASER + '/source/lib')
+sys.path.append(f'{LASER}/source')
+sys.path.append(f'{LASER}/source/lib')
 from embed import SentenceEncoder, EncodeLoad, EncodeFile
 from text_processing import Token, BPEfastApply
 from indexing import IndexCreate, IndexSearchMultiple, IndexPrintConfusionMatrix
@@ -72,39 +72,54 @@ all_texts = []
 if args.textual:
     print(' - using textual comparision')
     for l in args.lang:
-        with open(os.path.join(args.base_dir, args.data + '.' + l),
-                  encoding='utf-8', errors='surrogateescape') as f:
+        with open(os.path.join(args.base_dir, f'{args.data}.{l}'), encoding='utf-8', errors='surrogateescape') as f:
             texts = f.readlines()
-            print(' -   {:s}: {:d} lines'.format(args.data + '.' + l, len(texts)))
+            print(' -   {:s}: {:d} lines'.format(f'{args.data}.{l}', len(texts)))
             all_texts.append(texts)
 
 enc = EncodeLoad(args)
 
 out_dir = os.path.dirname(args.output)
 if not os.path.exists(out_dir):
-    print(' - creating directory {}'.format(out_dir))
+    print(f' - creating directory {out_dir}')
     os.mkdir(out_dir)
 
 all_data = []
 all_index = []
 for l in args.lang:
-    Token(os.path.join(args.base_dir, args.data + '.' + l),
-          os.path.join(args.base_dir, args.output + '.tok.' + l),
-          lang=l,
-          romanize=True if l == 'el' else False,
-          lower_case=True,
-          verbose=args.verbose, over_write=False)
-    BPEfastApply(os.path.join(args.base_dir, args.output + '.tok.' + l),
-                 os.path.join(args.base_dir, args.output + '.bpe.' + l),
-                 args.bpe_codes,
-                 verbose=args.verbose, over_write=False)
-    EncodeFile(enc,
-               os.path.join(args.base_dir, args.output + '.bpe.' + l),
-               os.path.join(args.base_dir, args.output + '.enc.' + l),
-               verbose=args.verbose, over_write=False)
-    d, idx = IndexCreate(os.path.join(args.base_dir, args.output + '.enc.' + l),
-                         'FlatL2',
-                         verbose=args.verbose, save_index=False)
+    Token(
+        os.path.join(args.base_dir, f'{args.data}.{l}'),
+        os.path.join(args.base_dir, f'{args.output}.tok.{l}'),
+        lang=l,
+        romanize=l == 'el',
+        lower_case=True,
+        verbose=args.verbose,
+        over_write=False,
+    )
+
+    BPEfastApply(
+        os.path.join(args.base_dir, f'{args.output}.tok.{l}'),
+        os.path.join(args.base_dir, f'{args.output}.bpe.{l}'),
+        args.bpe_codes,
+        verbose=args.verbose,
+        over_write=False,
+    )
+
+    EncodeFile(
+        enc,
+        os.path.join(args.base_dir, f'{args.output}.bpe.{l}'),
+        os.path.join(args.base_dir, f'{args.output}.enc.{l}'),
+        verbose=args.verbose,
+        over_write=False,
+    )
+
+    d, idx = IndexCreate(
+        os.path.join(args.base_dir, f'{args.output}.enc.{l}'),
+        'FlatL2',
+        verbose=args.verbose,
+        save_index=False,
+    )
+
     all_data.append(d)
     all_index.append(idx)
 
